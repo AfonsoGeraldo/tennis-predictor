@@ -1,0 +1,17 @@
+# Ambiente virtual
+venv/
+.venv/
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# Jupyter notebooks - checkpoints automáticos
+.ipynb_checkpoints/
+
+# Ficheiros do sistema/editor
+.DS_Store
+.vscode/
+
+# Dados (opcional - se os datasets forem grandes, não queremos no Git)
+# data/*.csv
