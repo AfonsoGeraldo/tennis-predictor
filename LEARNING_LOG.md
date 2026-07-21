@@ -45,3 +45,49 @@
 - Carregar o dataset de ténis (Jeff Sackmann - ATP results)
 - Explorar os dados num notebook Jupyter
 - Começar a pensar em feature engineering (ex: diferença de ranking, desempenho por superfície)
+
+
+## 22/07/2026
+
+### O que fiz
+- Descarreguei o dataset ATP Tennis (2000-2026) do Kaggle, guardado em `data/atp_tennis.csv` (o repositório original do Jeff Sackmann no GitHub deixou de estar acessível)
+- Criei o notebook `01_exploracao.ipynb` e liguei-o ao venv do projeto
+- Explorei os dados: 68.300 jogos, 17 colunas, sem valores nulos "oficiais"
+- Descobri que várias colunas (Rank, Pts, Odds) usam `-1` como código para "dado desconhecido" — não são valores reais
+- Limpei as ~14 linhas com Rank_1/Rank_2 inválidos (mantive Pts e Odds de fora do modelo por agora, por terem 23% e 5.5% de dados em falta respetivamente)
+- Criei a variável target `Player_1_Won` (0 ou 1) a partir da coluna `Winner`
+- Fiz one-hot encoding da coluna `Surface` (Hard, Clay, Grass, Carpet)
+- Separei os dados em treino (80%, 54.619 jogos) e teste (20%, 13.655 jogos)
+- Treinei o primeiro modelo: Regressão Logística, usando Rank_1, Rank_2 e Surface como features
+- Resultado: **65.40% de accuracy** no conjunto de teste
+
+### Comandos/conceitos novos que aprendi
+
+**Pandas:**
+- `df.head()` / `df.tail()` — mostra as primeiras/últimas N linhas
+- `df.info()` — resumo de colunas, tipos de dados e valores não-nulos
+- `df.describe()` — estatísticas (média, min, max, quartis) das colunas numéricas
+- `df['coluna'].value_counts()` — conta ocorrências de cada valor único numa coluna
+- Filtragem condicional: `df[(condição1) & (condição2)]`
+- `.copy()` — evita o aviso SettingWithCopyWarning ao criar um DataFrame derivado
+- `pd.get_dummies()` — one-hot encoding de colunas categóricas
+- `pd.concat([...], axis=1)` — junta DataFrames lado a lado (por colunas)
+
+**Scikit-learn:**
+- `train_test_split()` — separa dados em treino/teste (`test_size`, `random_state` para reprodutibilidade)
+- `LogisticRegression()` — modelo de classificação binária
+- `.fit(X_train, y_train)` — treina o modelo
+- `.predict(X_test)` — gera previsões
+- `accuracy_score(y_test, y_pred)` — mede a percentagem de acertos
+
+### Conceitos-chave
+- **Feature vs. Target:** features (X) são os inputs; target (y) é o que queremos prever
+- **One-hot encoding:** necessário para variáveis categóricas sem ordem natural, para não sugerir uma hierarquia falsa ao modelo
+- **Treino vs. Teste:** nunca avaliar um modelo com os mesmos dados usados para o treinar
+- **Accuracy como baseline:** no ténis, ~65-68% é o patamar esperado só com base no ranking; acima de 75-80% seria motivo de desconfiança
+
+### Próximos passos (ideias para continuar)
+1. Analisar *onde* o modelo erra mais (ex: jogos com rankings próximos/equilibrados)
+2. Criar a feature `Rank_Diff` (diferença de ranking entre os dois jogadores) — pode ser mais informativa que os rankings absolutos
+3. Experimentar outro algoritmo (ex: Random Forest) e comparar accuracy
+4. Reintroduzir `Pts_1`/`Pts_2` e `Odd_1`/`Odd_2` com tratamento adequado dos valores em falta, e comparar se melhora o modelo
