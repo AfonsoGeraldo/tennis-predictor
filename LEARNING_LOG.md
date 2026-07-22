@@ -91,3 +91,42 @@
 2. Criar a feature `Rank_Diff` (diferença de ranking entre os dois jogadores) — pode ser mais informativa que os rankings absolutos
 3. Experimentar outro algoritmo (ex: Random Forest) e comparar accuracy
 4. Reintroduzir `Pts_1`/`Pts_2` e `Odd_1`/`Odd_2` com tratamento adequado dos valores em falta, e comparar se melhora o modelo
+
+## 23/07/2026
+
+### O que fiz
+- Criei a feature `Rank_Diff` (diferença de ranking entre os dois jogadores) e testei-a tanto na Regressão Logística como no Random Forest — em ambos os casos, não trouxe melhoria (informação redundante face a Rank_1/Rank_2)
+- Treinei um Random Forest e comparei com a Regressão Logística baseline
+- Detetei overfitting no Random Forest por defeito (87.50% treino vs 58.95% teste) e corrigi limitando a profundidade das árvores (`max_depth=5`), resultando em 65.52% treino vs 65.23% teste — já sem overfitting, e praticamente equivalente à Regressão Logística (65.40%)
+- Construí a função `obter_ranking_recente()`, que procura o ranking mais atual de um jogador no dataset (procurando tanto em Player_1 como em Player_2)
+- Construí a função `prever_jogo()`, que recebe dois nomes de jogadores + superfície, e devolve a probabilidade de vitória de cada um, usando o modelo treinado
+- Testei com jogadores reais (ex: Tsitsipas vs Rublev em Hard) — resultado coerente com o ranking
+- Movi as duas funções para `src/predict.py`, e passei a importá-las no notebook via `sys.path.append()` + `from predict import ...`, em vez de as ter duplicadas
+
+### Comandos/conceitos novos que aprendi
+
+**Scikit-learn:**
+- `RandomForestClassifier()` — modelo baseado em múltiplas árvores de decisão, combinando "votos"
+- `max_depth` — parâmetro que limita a complexidade das árvores, para evitar overfitting
+- `.predict_proba()` — devolve as probabilidades de cada classe (em vez de só 0/1 como o `.predict()`), formato `[[prob_classe_0, prob_classe_1]]`
+
+**Pandas:**
+- `.iloc[posição]` vs `.loc[índice]` — `.iloc` acede pela posição física da linha (útil depois de `sort_values`, quando os índices originais ficam "desordenados"); `.loc` acede pelo rótulo/índice
+- `pd.concat([...])` sem `axis=1` — junta DataFrames por linhas (empilha), ao contrário do `axis=1` que junta por colunas
+
+**Organização de projeto:**
+- `sys.path.append('../pasta')` — permite importar módulos de outras pastas do projeto
+- `from ficheiro import funcao1, funcao2` — importa funções específicas de um ficheiro `.py` próprio
+- Docstrings (`"""texto"""` a seguir a um `def`) — forma padrão de documentar funções em Python
+
+### Conceitos-chave
+- **Overfitting:** quando um modelo "decora" os dados de treino em vez de aprender um padrão geral — sinal claro é accuracy muito mais alta no treino do que no teste
+- **Multicolinearidade:** quando uma feature é calculada diretamente a partir de outras já existentes (ex: Rank_Diff a partir de Rank_1/Rank_2), raramente acrescenta informação nova ao modelo
+- **Modelo mais complexo ≠ modelo melhor:** com poucas features simples, um Random Forest bem afinado tende a convergir para resultados semelhantes a um modelo linear simples
+- **Notebook vs. src/:** notebook para experimentação; src/ para código já validado e reutilizável
+
+### Próximos passos (ideias para continuar)
+1. Explorar mais casos de teste na função `prever_jogo()` (jogadores conhecidos, diferentes superfícies)
+2. Reintroduzir `Pts_1`/`Pts_2` e `Odd_1`/`Odd_2` com tratamento adequado dos valores em falta, e ver se melhora o modelo
+3. Considerar ligar a uma fonte de ranking atualizada (API) em vez de depender só do ranking mais recente presente no dataset histórico
+4. Continuar a mover código estável do notebook para `src/` à medida que se consolida
